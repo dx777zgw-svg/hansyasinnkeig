@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カオスネオン反射測定器</title>
+    <style>
+        /* 🌃 漆黒×ネオンのサイバーコックピット・デザイン */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0d0f12;
+            color: #e0e6ed;
+            text-align: center;
+            padding: 10px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 10px auto;
+            background: #141923;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #1f2937;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.15);
+        }
+        h1 {
+            color: #00ffcc;
+            margin: 5px 0;
+            font-size: 2em;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+        }
+        .subtitle {
+            font-size: 0.85em;
+            color: #64748b;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+        
+        /* 🕹️ ネオン難易度セレクター */
+        .mode-select { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 4px; }
+        .mode-btn {
+            flex: 1; padding: 10px 1px; font-size: 0.75em; font-weight: bold;
+            border: 1px solid #334155; border-radius: 8px; cursor: pointer;
+            background: #1e293b; color: #94a3b8; transition: all 0.2s;
+            line-height: 1.3;
+        }
+        .mode-btn:hover { border-color: #00ffcc; color: #fff; }
+        .mode-btn.active {
+            background: #00ffcc; color: #0d0f12; border-color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+        }
+        .mode-btn.danger-zone:hover { border-color: #ff0055; color: #fff; }
+        .mode-btn.danger-zone.active {
+            background: #ff0055; color: #fff; border-color: #ff0055;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.8);
+        }
+
+        /* 🔇🔊 SE音切り替えスイッチ */
+        .audio-toggle-container { margin-bottom: 15px; text-align: right; }
+        .audio-toggle-btn {
+            padding: 6px 12px; font-size: 0.85em; font-weight: bold; cursor: pointer;
+            border-radius: 20px; border: 1px solid #38bdf8; background: #0f172a; color: #38bdf8;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.3); transition: all 0.2s;
+        }
+        .audio-toggle-btn.muted {
+            border-color: #64748b; color: #64748b; background: #1e293b; box-shadow: none;
+        }
+
+        /* 📺 異次元ゲームステージ */
+        #game-stage {
+            width: 100%;
+            height: 350px;
+            background-color: #090d16;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 2px solid #334155;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        /* 🔴 通常お題・出現ターゲット */
+        #game-target {
+            position: absolute;
+            display: none;
+            padding: 12px 18px;
+            font-size: 1.15em;
+            font-weight: bold;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+            transition: transform 0.05s;
+        }
+        #game-target:active { transform: scale(0.95); }
+        
+        /* 🤪 違和感専用マトリクスコンテナ */
+        .iwakan-grid {
+            position: absolute;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 1px; 
+            background-color: #00ffcc; 
+            box-shadow: 0 0 15px #00ffcc;
+            border-radius: 8px;
+            overflow: hidden;
+            width: 180px;
+            height: 180px;
+        }
+        .iwakan-cell {
+            background-color: #090d16; 
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.1s;
+        }
+        .iwakan-cell:hover { background-color: #1e293b; }
+
+        /* 📊 ネオンインフォメーション */
+        .info-bar {
+            display: flex; justify-content: space-around; font-size: 1.1em; font-weight: bold;
+            margin-bottom: 20px; background: #1e293b; padding: 10px; border-radius: 8px;
+            border: 1px solid #334155; color: #38bdf8;
+            text-shadow: 0 0 5px rgba(56, 189, 248, 0.4);
+        }
+        
+        /* 🏆 50位対応ランキング特設ボード */
+        .ranking-box {
+            margin-top: 25px; background: #0b0e17; padding: 20px; border-radius: 15px;
+            border: 2px solid #334155; text-align: left;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+        }
+        .ranking-title { 
+            font-size: 1.15em; font-weight: bold; color: #00ffcc; margin-bottom: 12px; text-align: center;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); letter-spacing: 1px;
+        }
+        .ranking-scroll-container { max-height: 250px; overflow-y: auto; padding-right: 5px; }
+        .ranking-scroll-container::-webkit-scrollbar { width: 6px; }
+        .ranking-scroll-container::-webkit-scrollbar-track { background: #0f172a; }
+        .ranking-scroll-container::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 3px; }
+        .ranking-list { list-style: none; padding: 0; margin: 0; font-family: monospace; }
+        .ranking-item { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid #1f2937; font-size: 0.95em; align-items: center; }
+        .ranking-item:last-child { border-bottom: none; }
+        
+        .rank-top1 { color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); font-weight: bold; }
+        .rank-top2 { color: #c0c0c0; text-shadow: 0 0 8px rgba(192, 192, 192, 0.5); font-weight: bold; }
+        .rank-top3 { color: #cd7f32; text-shadow: 0 0 8px rgba(205, 127, 50, 0.5); font-weight: bold; }
+        .rank-num { font-weight: bold; margin-right: 12px; display: inline-block; width: 35px; }
+        .player-tag { color: #8892b0; font-size: 0.8em; margin-left: 8px; background: #1e293b; padding: 2px 6px; border-radius: 4px; }
+        
+        /* 🥷👑 伝説の人外（DANGER）クリア記念碑ボード */
+        .danger-monument-box {
+            margin-top: 20px; background: #1a0a12; padding: 20px; border-radius: 15px;
+            border: 2px solid #ff0055; text-align: center;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.3);
+        }
+        .monument-title {
+            font-size: 1.2em; font-weight: bold; color: #ff0055; margin-bottom: 10px;
+            text-shadow: 0 0 12px rgba(255, 0, 85, 0.8); letter-spacing: 2px;
+        }
+        .monument-desc { font-size: 0.8em; color: #94a3b8; margin-bottom: 15px; line-height: 1.4; }
+        .monument-list {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+            padding: 0; list-style: none; margin: 0;
+        }
+        .monument-name {
+            background: #2d0f1a; color: #fff; border: 1px solid #ff0055;
+            padding: 5px 15px; border-radius: 20px; font-size: 0.9em; font-weight: bold;
+            box-shadow: 0 0 8px rgba(255, 0, 85, 0.4); animation: neonPulse 2s infinite alternate;
+        }
+        .monument-none {
+            color: #64748b; font-size: 0.95em; font-style: italic; padding: 10px; letter-spacing: 1px;
+        }
+        @keyframes neonPulse {
+            from { box-shadow: 0 0 5px rgba(255, 0, 85, 0.4); }
+            to { box-shadow: 0 0 15px rgba(255, 0, 85, 0.8); }
+        }
+
+        .input-group { margin: 15px 0; text-align: left; }
+        label { font-weight: bold; font-size: 0.85em; display: block; margin-bottom: 5px; color: #94a3b8; }
+        input[type="text"] {
+            width: 100%; padding: 10px; box-sizing: border-box;
+            background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+            color: #fff; font-size: 1em; transition: border-color 0.2s;
+        }
+        input[type="text"]:focus { border-color: #38bdf8; outline: none; }
+        
+        button.action-btn {
+            width: 100%; padding: 12px; font-size: 1.1em; font-weight: bold;
+            border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .btn-start { background-color: #38bdf8; color: #0d0f12; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+        .btn-send { background-color: #2ecc71; color: #fff; box-shadow: 0 0 15px rgba(46, 204, 113, 0.4); }
+        .btn-x { background-color: #ffffff; color: #000000; box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
+        button.action-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>カオス反射測定器</h1>
+    <div class="subtitle">Produced by MVP 2.8.6 最終神話スペック</div>
+
+    <div class="mode-select">
+        <button class="mode-btn active" onclick="setDifficulty('easy')">ゆるん<br>(easy)</button>
+        <button class="mode-btn" onclick="setDifficulty('normal')">ふつー<br>(normal)</button>
+        <button class="mode-btn" onclick="setDifficulty('hard')">鬼かよ！<br>(hard)</button>
+        <button class="mode-btn" onclick="setDifficulty('expert')">達人<br>(0.5秒)</button>
+        <button class="mode-btn danger-zone" onclick="setDifficulty('danger')">人外<br>(DANGER)</button>
+    </div>
+
+    <div class="audio-toggle-container">
+        <button id="audio-toggle" class="audio-toggle-btn" onclick="toggleAudio()">🔊 音：ON</button>
+    </div>
+
+    <div id="game-stage">
+        <div id="game-target" onclick="targetClicked(event)"></div>
+        <div style="color: #475569; font-size: 1.2em; font-weight: bold; padding-top: 150px; padding-left: 10px; padding-right: 10px;" id="stage-msg">【難易度を選んで、STARTボタンをブチ叩くべ！】</div>
+    </div>
+
+    <div class="info-bar">
+        <div id="score-display">スコア: 0</div>
+        <div id="q-display">設問: 0 / 15</div>
+        <div id="timer-display">残り時間: --</div>
+    </div>
+
+    <div class="input-group">
+        <label for="player-name">名前（スコアランキング用）</label>
+        <input type="text" id="player-name" placeholder="name" value="name">
+    </div>
+
+    <button class="action-btn btn-start" id="start-btn" onclick="startGame()">⚔️ ネオン測定ゲート、大起動！！！</button>
+    <button class="action-btn btn-send" id="upload-btn" onclick="sendToGoogleScore()" style="display:none;">🟢 緑 of ノート（Google）へ順位送信べ！</button>
+    <button class="action-btn btn-x" id="x-btn" onclick="shareOnX()" style="display:none;">𝕏 結果を「#いつもカオス診断」に放流！</button>
+
+    <div id="ranking-container" class="ranking-box" style="display:none;">
+        <div class="ranking-title">🏆 カオスギネス・50位特設ランキング表</div>
+        <div class="ranking-scroll-container">
+            <ul id="ranking-list-ui" class="ranking-list"></ul>
+        </div>
+    </div>
+
+    <div id="danger-monument-container" class="danger-monument-box">
+        <div class="monument-title">💀 𝕎𝕎𝕎 真・人外の輪ネオン記念碑 💀</div>
+        <div class="monument-desc">コンマ2秒の檻（DANGERモード）を完全制覇し、プラス点数を叩き出して無事に生存帰還した超人類の魂の履歴だべ！！！</div>
+        <ul id="monument-list-ui" class="monument-list"></ul>
+    </div>
+</div>
+
+<script>
+    // ===================================================
+    // ⚙️ 【環境設定パケット】
+    // ===================================================
+    var googleAppScriptUrl = "https://script.google.com/macros/s/AKfycbxqvwesKp2FzdE9ZAVBoXeXtp-97fBKYSiOpda7BnhLBd6z5hk9LoDFeV9enUJ9P-Ep/exec"; 
+    var gameWebsiteUrl = "https://masacchi.github.io/chaos-diagnostic/"; 
+
+    // 📦 カオスお題データベース
+    var odaiList = [
+        { type: "ドンペリ", text: "ミルクドンペリ：開けろ", collect: "開けろ", wrong: "閉めろ", color: "#a855f7", neon: "0 0 20px #a855f7" },
+        { type: "ドンペリ", text: "ミルクドンペリ：閉めろ", collect: "閉めろ", wrong: "開けろ", color: "#7c3aed", neon: "0 0 20px #7c3aed" },
+        { type: "いたわれ", text: "いたわれ！：座る", collect: "座る", wrong: "寝る", color: "#f97316", neon: "0 0 20px #f97316" },
+        { type: "いたわれ", text: "いたわれ！：寝る", collect: "寝る", wrong: "座る", color: "#ea580c", neon: "0 0 20px #ea580c" },
+        { type: "違和感", text: "違和感（🤪）を狙い撃て！", color: "#06b6d4", neon: "0 0 20px #06b6d4" },
+        { type: "違和感", text: "違和感（🤪）を狙い撃て！", color: "#0d9488", neon: "0 0 20px #0d9488" },
+        { type: "違和感", text: "違和感（🤪）を狙い撃て！", color: "#10b981", neon: "0 0 20px #10b981" },
+        { type: "休み", text: "【休み】何も押してはいけない！", collect: "休み", wrong: "", color: "#64748b", neon: "0 0 10px #64748b" }
+    ];
+
+    var difficulty = "easy";
+    var score = 0;
+    var currentQ = 0;
+    var maxQ = 15;
+    var currentCollect = "";
+    var isYasumi = false;
+    
+    // 🧠 タイマー完全分離パケット
+    var limitInterval = null; 
+    var yasumiTimeout = null;  
+    
+    // 🔊 内製オーディオ
+    var isAudioOn = true;
+    var audioCtx = null;
+
+    window.onload = function() {
+        renderMonument();
+    };
+
+    function toggleAudio() {
+        isAudioOn = !isAudioOn;
+        var btn = document.getElementById("audio-toggle");
+        if (isAudioOn) {
+            btn.innerText = "🔊 音：ON";
+            btn.classList.remove("muted");
+        } else {
+            btn.innerText = "🔇 音：OFF";
+            btn.classList.add("muted");
+        }
+    }
+
+    function playSyntheticSound(type) {
+        if (!isAudioOn) return;
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            var osc = audioCtx.createOscillator();
+            var gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (type === "good") {
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.08); 
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } else if (type === "bad") {
+                osc.type = "sawtooth";
+                osc.frequency.setValueAtTime(150.00, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(80.00, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            }
+        } catch(e) {}
+    }
+
+    function setDifficulty(mode) {
+        difficulty = mode;
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    function startGame() {
+        score = 0; currentQ = 0;
+        document.getElementById("start-btn").style.display = "none";
+        document.getElementById("upload-btn").style.display = "none";
+        document.getElementById("x-btn").style.display = "none";
+        document.getElementById("ranking-container").style.display = "block"; 
+        document.getElementById("stage-msg").innerText = "";
+        
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        fetchLatestRankings();
+        nextQuestion();
+    }
+
+    function killActiveTimers() {
+        if (limitInterval !== null) {
+            clearInterval(limitInterval);
+            limitInterval = null;
+        }
+        if (yasumiTimeout !== null) {
+            clearTimeout(yasumiTimeout);
+            yasumiTimeout = null;
+        }
+    }
+
+    function createNeonEmojiGrid(lineColor) {
+        let grid = document.createElement("div");
+        grid.className = "iwakan-grid";
+        grid.style.backgroundColor = lineColor; 
+        grid.style.boxShadow = "0 0 15px " + lineColor;
+
+        grid.onclick = function(e) {
+            e.stopPropagation();
+        };
+
+        let iwakanRow = Math.floor(Math.random() * 4);
+        let iwakanCol = Math.floor(Math.random() * 4);
+
+        for (let r = 0; r < 4; r++) {
+            for (let c = 0; c < 4; c++) {
+                let cell = document.createElement("div");
+                cell.className = "iwakan-cell";
+                
+                if (r === iwakanRow && c === iwakanCol) {
+                    cell.innerText = "🤪";
+                    cell.onclick = function(e) {
+                        e.stopPropagation();
+                        killActiveTimers(); 
+                        score += 10;
+                        playSyntheticSound("good");
+                        nextQuestion();
+                    };
+                } else {
+                    cell.innerText = "😀";
+                    cell.onclick = function(e) {
+                        e.stopPropagation();
+                        killActiveTimers(); 
+                        score -= 5;
+                        playSyntheticSound("bad");
+                        nextQuestion();
+                    };
+                }
+                grid.appendChild(cell);
+            }
+        }
+        return grid;
+    }
+
+    function nextQuestion() {
+        killActiveTimers(); 
+        isYasumi = false; 
+        currentCollect = "";
+
+        var stage = document.getElementById("game-stage");
+        var oldGrid = stage.querySelector(".iwakan-grid");
+        if (oldGrid) stage.removeChild(oldGrid);
+
+        var target = document.getElementById("game-target");
+        target.style.display = "none";
+        target.onclick = targetClicked; 
+
+        if (currentQ >= maxQ) {
+            endGame();
+            return;
+        }
+
+        currentQ++;
+        document.getElementById("score-display").innerText = "スコア: " + score;
+        document.getElementById("q-display").innerText = "設問: " + currentQ + " / " + maxQ;
+
+        var odai = odaiList[Math.floor(Math.random() * odaiList.length)];
+        
+        if (odai.type === "休み") {
+            isYasumi = true;
+            currentCollect = "休み";
+            target.style.backgroundColor = odai.color;
+            target.style.boxShadow = odai.neon;
+            target.innerText = odai.text;
+            positionTarget(target, true);
+            target.style.display = "block";
+
+            var yasumiTime = 1000;
+            if (difficulty === "expert" || difficulty === "danger") {
+                yasumiTime = Math.floor(Math.random() * 2000) + 1000;
+            }
+            
+            document.getElementById("timer-display").innerText = "⚠️ 休み！耐久！";
+            
+            yasumiTimeout = setTimeout(function() {
+                if (isYasumi) {
+                    score += 5;
+                    playSyntheticSound("good");
+                    nextQuestion();
+                }
+            }, yasumiTime);
+
+        } else if (odai.type === "違和感") {
+            var emojiGrid = createNeonEmojiGrid(odai.color);
+            stage.appendChild(emojiGrid);
+
+            currentCollect = "IWAKAN_MODE"; 
+            positionTarget(emojiGrid);
+            
+            target.style.left = "-9999px";
+            target.style.top = "-9999px";
+            
+            setModeTimer();
+
+        } else {
+            var isTrueButton = Math.random() > 0.5;
+            target.style.backgroundColor = odai.color;
+            target.style.boxShadow = odai.neon;
+
+            if (isTrueButton) {
+                target.innerText = odai.text + " ➡️ 【" + odai.collect + "】";
+                currentCollect = "CLICK";
+            } else {
+                target.innerText = odai.text + " ➡️ 【" + odai.wrong + "】";
+                currentCollect = "DONTSHOT";
+            }
+
+            positionTarget(target);
+            target.style.display = "block";
+
+            setModeTimer();
+        }
+    }
+
+    function setModeTimer() {
+        var timeLimit = 10000; 
+        if (difficulty === "hard") timeLimit = 5000;
+        if (difficulty === "expert") timeLimit = 500;  
+        if (difficulty === "danger") timeLimit = 200;  
+
+        var timeLeft = (timeLimit / 1000);
+        document.getElementById("timer-display").innerText = "残り: " + timeLeft.toFixed(2) + "秒";
+        
+        var intervalStep = (difficulty === "danger" || difficulty === "expert") ? 50 : 100;
+        
+        limitInterval = setInterval(function() {
+            timeLeft -= (intervalStep / 1000);
+            if (timeLeft <= 0.001) {
+                killActiveTimers(); 
+                
+                if (currentCollect === "IWAKAN_MODE") {
+                    score -= 5;
+                    playSyntheticSound("bad");
+                } else if (currentCollect === "DONTSHOT") {
+                    score += 5; 
+                    playSyntheticSound("good");
+                } else {
+                    score -= 5; 
+                    playSyntheticSound("bad");
+                }
+                nextQuestion();
+            } else {
+                document.getElementById("timer-display").innerText = "残り: " + timeLeft.toFixed(2) + "秒";
+            }
+        }, intervalStep);
+    }
+
+    function positionTarget(element, forceCenter = false) {
+        var stage = document.getElementById("game-stage");
+        element.style.position = "absolute";
+        
+        if (forceCenter || difficulty === "easy") {
+            element.style.left = "50%";
+            element.style.top = "50%";
+            element.style.transform = "translate(-50%, -50%)";
+        } else if (difficulty === "normal") {
+            element.style.transform = "none";
+            var positions = [
+                {l: "50%", t: "30px", trans: "translateX(-50%)"},
+                {l: "50%", t: "220px", trans: "translateX(-50%)"},
+                {l: "20px", t: "150px", trans: "translateY(-50%)"},
+                {l: "360px", t: "150px", trans: "translateY(-50%)"},
+                {l: "50%", t: "150px", trans: "translate(-50%, -50%)"}
+            ];
+            var pos = positions[Math.floor(Math.random() * positions.length)];
+            element.style.left = pos.l;
+            element.style.top = pos.t;
+            element.style.transform = pos.trans;
+        } else {
+            element.style.transform = "none";
+            var maxW = stage.clientWidth - (element.className === "iwakan-grid" ? 200 : 180);
+            var maxH = stage.clientHeight - (element.className === "iwakan-grid" ? 200 : 120);
+            var randomX = Math.floor(Math.random() * Math.max(20, maxW)) + 10;
+            var randomY = Math.floor(Math.random() * Math.max(20, maxH)) + 10;
+            element.style.left = randomX + "px";
+            element.style.top = randomY + "px";
+        }
+    }
+
+    function targetClicked(event) {
+        event.stopPropagation();
+        if (currentCollect === "" || currentCollect === "IWAKAN_MODE") return; 
+
+        killActiveTimers(); 
+
+        if (isYasumi || currentCollect === "DONTSHOT") {
+            score -= 5;
+            playSyntheticSound("bad");
+        } else if (currentCollect === "CLICK") {
+            score += 10;
+            playSyntheticSound("good");
+        }
+        nextQuestion();
+    }
+
+    // 🕳️ 𝕏連動URL完全開国パケットマージ
+    function shareOnX() {
+        var modeName = "難易度:" + difficulty.toUpperCase();
+        var tweetText = "【反射神経結果】\n" + modeName + "で" + score + "点！！！\n\n#いつもカオス診断";
+        var xUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(tweetText) + "&url=" + encodeURIComponent(gameWebsiteUrl);
+        window.open(xUrl, '_blank');
+    }
+
+    function endGame() {
+        killActiveTimers();
+        document.getElementById("game-target").style.display = "none";
+        
+        var msg = "【カオス測定完了だべ！】\n最終総スコア: " + score + " 点！！！\n";
+        if (difficulty === "danger" && score >= 50) msg += "判定: 人間を完全に超越せし神（DANGER制覇）👽🧬🔥";
+        else if (score >= 100) msg += "判定: 異次元の達人（Other World級）🌌🛸";
+        else if (score >= 50) msg += "判定: なかなかやるべ👍⚡️";
+        else msg += "判定: 脳みそお布団コックピット級🛌💤";
+
+        document.getElementById("stage-msg").innerText = msg;
+        document.getElementById("start-btn").style.display = "block";
+        document.getElementById("start-btn").innerText = "🔄 もう一回脳汁を出すべ！";
+        document.getElementById("upload-btn").style.display = "block";
+        document.getElementById("x-btn").style.display = "block";
+        
+        if (difficulty === "danger" && score > 0) {
+            let nameInput = document.getElementById("player-name").value || "名無しの超人類";
+            saveToDangerMonument(nameInput);
+        }
+        
+        fetchLatestRankings();
+    }
+
+    function saveToDangerMonument(name) {
+        let monumentList = JSON.parse(localStorage.getItem("danger_monument_list")) || [];
+        if (!monumentList.includes(name)) {
+            monumentList.push(name);
+            localStorage.setItem("danger_monument_list", JSON.stringify(monumentList));
+        }
+        renderMonument();
+    }
+
+    function renderMonument() {
+        let monumentList = JSON.parse(localStorage.getItem("danger_monument_list")) || [];
+        let uiList = document.getElementById("monument-list-ui");
+
+        uiList.innerHTML = "";
+        if (monumentList.length > 0) {
+            monumentList.forEach(name => {
+                let li = document.createElement("li");
+                li.className = "monument-name";
+                li.innerText = "🥷 " + name;
+                uiList.appendChild(li);
+            });
+        } else {
+            let div = document.createElement("div");
+            div.className = "monument-none";
+            div.innerText = "―― 人外いまだ見ぬ…（最初の到達者はオマエだべ！👁️🔥） ――";
+            uiList.appendChild(div);
+        }
+    }
+
+    function fetchLatestRankings() {
+        var uiList = document.getElementById("ranking-list-ui");
+        uiList.innerHTML = "<li class='ranking-item' style='color:#38bdf8;'>📡 スプレッドシートのノートから最大50位のギネスデータを電波受信中...</li>";
+
+        fetch(googleAppScriptUrl + "?action=getLeaderboard")
+        .then(response => response.json())
+        .then(data => {
+            uiList.innerHTML = "";
+            if (!data || data.length === 0) {
+                uiList.innerHTML = "<li class='ranking-item'>まだデータがありません。初登頂のチャンスだべ！</li>";
+                return;
+            }
+            
+            data.slice(0, 50).forEach((player, index) => {
+                let li = document.createElement("div"); // liのバグ修正用
+                li.className = "ranking-item";
+                
+                let rankClass = "";
+                if (index === 0) rankClass = "rank-top1";
+                else if (index === 1) rankClass = "rank-top2";
+                else if (index === 2) rankClass = "rank-top3";
+                
+                let rankNumText = `<span class="rank-num ${rankClass}">${index + 1}位</span>`;
+                li.innerHTML = `<div>${rankNumText}${player.name}<span class="player-tag">${player.mode}</span></div><div style="color:#00ffcc; font-weight:bold;">${player.score}点</div>`;
+                uiList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            uiList.innerHTML = "";
+            let dummyData = [
+                {name: document.getElementById("player-name").value || "name", mode: "反射設定(" + difficulty.toUpperCase() + ")", score: score},
+                {name: "まさっち社長(Leader)", mode: "反射設定(EXPERT)", score: 140},
+                {name: "AIワトソンくん(助手)", mode: "反射設定(DANGER)", score: -15},
+                {name: "カオス候補生A", mode: "反射設定(HARD)", score: 45},
+                {name: "お布団の住人", mode: "反射設定(EASY)", score: 20}
+            ];
+            for(let i=1; i<=45; i++) {
+                dummyData.push({name: "ステルス候補生" + i, mode: "反射設定(NORMAL)", score: Math.floor(Math.random() * 40) - 10});
+            }
+            dummyData.sort((a,b) => b.score - a.score);
+            
+            dummyData.forEach((player, index) => {
+                let li = document.createElement("li");
+                li.className = "ranking-item";
+                let rankClass = "";
+                if (index === 0) rankClass = "rank-top1";
+                else if (index === 1) rankClass = "rank-top2";
+                else if (index === 2) rankClass = "rank-top3";
+                
+                let rankNumText = `<span class="rank-num ${rankClass}">${index + 1}位</span>`;
+                li.innerHTML = `<div>${rankNumText}${player.name}<span class="player-tag">${player.mode}</span></div><div style="color:#00ffcc; font-weight:bold;">${player.score}点</div>`;
+                uiList.appendChild(li);
+            });
+        });
+    }
+
+    function sendToGoogleScore() {
+        var nameInput = document.getElementById("player-name").value;
+        var payload = {
+            name: nameInput || "名無しのカオス候補生",
+            score: score,
+            mode: "反射設定(" + difficulty.toUpperCase() + ")"
+        };
+
+        fetch(googleAppScriptUrl, {
+            method: "POST",
+            mode: "no-cors", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            alert("緑のノートに魂のネオンスコアが彫り込まれたべ！👍😏🤟");
+            fetchLatestRankings(); 
+        })
+        .catch(error => alert("電波障害だべ！！！😭❌"));
+    }
+</script>
+
+</body>
+</html>
